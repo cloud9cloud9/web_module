@@ -17,10 +17,6 @@ public class DiscountServlet extends HttpServlet {
     private static final ObjectMapper mapper = new ObjectMapper();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        double discountPrice = discountService.getPrice();
-        Discount discount = new Discount(discountPrice);
-        String jsonString = mapper.writeValueAsString(discount);
-        resp.setContentType("application/json");
-        resp.getWriter().println(jsonString);
+        mapper.writeValue(resp.getWriter(), new Discount(discountService.getDiscount()));
     }
 }

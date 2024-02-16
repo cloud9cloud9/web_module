@@ -32,7 +32,7 @@ public class AuthService {
         int id = idCounter.incrementAndGet();
         User user = new User(email, password, role);
         userBase.put(id, user);
-        tokenBase.put(user.getEmail(), generateToken(id));
+        tokenBase.put(email, generateToken(id));
         return id;
     }
 
@@ -46,32 +46,24 @@ public class AuthService {
         }
         return false;
     }
-    public String generateToken(Integer id){
-        SecureRandom secureRandom = new SecureRandom();
+
+    public String generateToken(Integer id) {
         byte[] tokenBytes = new byte[TOKEN_LENGTH];
-        secureRandom.nextBytes(tokenBytes);
+        new SecureRandom().nextBytes(tokenBytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
-        if(isAdmin(id)){
-            return token + SecurityConstants.SECRET_WORD;
-        }
-        return token;
+        return isAdmin(id) ? token + SecurityConstants.SECRET_WORD : token;
     }
+
     public boolean isValidateToken(String token) {
         return tokenBase.containsValue(token);
     }
 
     public String getTokenFromEmail(String email) {
-        for (Map.Entry<String, String> entry : tokenBase.entrySet()) {
-            if (entry.getKey().equals(email)) {
-                return entry.getValue();
-            }
-        }
-        return null;
+        return tokenBase.get(email);
     }
 
-    private static boolean isAdmin(Integer id){
-        User user = userBase.get(id);
-        return user.getRole().equals(Role.ADMIN);
+    private static boolean isAdmin(Integer id) {
+        return userBase.get(id).getRole() == Role.ADMIN;
     }
 
     private AuthService() {

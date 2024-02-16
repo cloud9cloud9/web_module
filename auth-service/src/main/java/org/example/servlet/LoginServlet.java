@@ -25,16 +25,14 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        boolean authenticateUser = authService.isAuthenticateUser(req.getParameter("email"),
-                req.getParameter("password"));
-        if(authenticateUser){
-            Token authToken = new Token(authService.getTokenFromEmail(req.getParameter("email")));
-            String json = mapper.writeValueAsString(authToken);
-            resp.setContentType("application/json");
-            resp.getWriter().write(json);
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+        if(authService.isAuthenticateUser(email, password)){
+            String token = authService.getTokenFromEmail(email);
+            resp.getWriter().write(mapper.writeValueAsString(new Token(token)));
+            resp.setStatus(HttpServletResponse.SC_OK);
         } else {
-            resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            resp.getWriter().write("Invalid credentials");
+            resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid credentials");
         }
     }
 }

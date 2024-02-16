@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class ProductDao {
     private static final ProductDao INSTANCE = new ProductDao();
@@ -26,18 +27,25 @@ public class ProductDao {
     }
 
     public Product getProductById(int id) {
-        Product product = productList.stream()
-                .filter(products -> products.getId() == id)
+        return productList.stream()
+                .filter(p -> p.getId() == id)
+                .map(p -> {
+                    Product productCopy = new Product(p.getId(), p.getName(), p.getPrice());
+                    setProductPriceWithDiscount(productCopy);
+                    return productCopy;
+                })
                 .findFirst()
                 .orElse(null);
-        if(product != null) setProductPriceWithDiscount(product);
-        return product;
     }
 
     public List<Product> getAllProduct() {
-        List<Product> getAll = new ArrayList<>(productList);
-        getAll.forEach(this::setProductPriceWithDiscount);
-        return getAll;
+        return productList.stream()
+                .map(product -> {
+                    Product discountedProduct = new Product(product.getId(), product.getName(), product.getPrice());
+                    setProductPriceWithDiscount(discountedProduct);
+                    return discountedProduct;
+                })
+                .collect(Collectors.toList());
     }
 
     public void update(int id, Product updateProd) {
@@ -48,6 +56,7 @@ public class ProductDao {
             product.setId(key.incrementAndGet());
             delete(id);
         }
+        productList.add(product);
     }
 
     public Product delete(int id) {
@@ -66,9 +75,11 @@ public class ProductDao {
     public static ProductDao getInstance() {
         return INSTANCE;
     }
+
     private void setProductPriceWithDiscount(Product product) {
         product.setPrice(product.getPrice() - (product.getPrice() * getPriceWithDiscount()));
     }
+
     private double getPriceWithDiscount() {
         return discountService.getPriceWithDiscount();
     }

@@ -20,10 +20,6 @@ public class ValidateTokenServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String token = req.getHeader("Authorization");
         boolean isValid = authService.isValidateToken(token);
-        ValidationResult result = new ValidationResult(isValid);
-        String json = mapper.writeValueAsString(result);
-        resp.setContentType("application/json");
-        resp.getWriter().println(json);
-        resp.getWriter().flush();
+        mapper.writeValue(resp.getWriter(), new ValidationResult(isValid));
     }
 }
